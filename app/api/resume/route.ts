@@ -6,6 +6,7 @@ import { getResumeHtml } from '../../../lib/resume.template';
 // runtime, and this route always renders fresh - never statically cached.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 // Vercel's serverless functions can't run the full `puppeteer` package (its
 // bundled Chromium is too large / not Lambda-compatible), so production
