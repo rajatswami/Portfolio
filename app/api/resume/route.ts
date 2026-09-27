@@ -10,18 +10,24 @@ export const maxDuration = 60;
 
 // Vercel's serverless functions can't run the full `puppeteer` package (its
 // bundled Chromium is too large / not Lambda-compatible), so production
-// uses `puppeteer-core` + `@sparticuz/chromium` (a Chromium build packaged
-// to fit serverless size limits) instead. Locally, plain `puppeteer` is
-// simpler and already has Chromium cached.
+// uses `puppeteer-core` + `@sparticuz/chromium-min` instead. The "-min"
+// variant ships no Chromium binary of its own - it downloads a prebuilt
+// pack from this URL into /tmp at runtime - which avoids the regular
+// `@sparticuz/chromium` package's binary folder getting silently dropped by
+// Next.js's output file tracing on Vercel (a known bundler/tracing gap this
+// package's own docs call out). Locally, plain `puppeteer` is simpler and
+// already has Chromium cached.
 const isServerless = Boolean(process.env.VERCEL);
+const CHROMIUM_PACK_URL =
+  'https://github.com/Sparticuz/chromium/releases/download/v153.0.0/chromium-v153.0.0-pack.x64.tar';
 
 const launchBrowser = async (): Promise<Browser> => {
   if (isServerless) {
-    const chromium = (await import('@sparticuz/chromium')).default;
+    const chromium = (await import('@sparticuz/chromium-min')).default;
     const puppeteerCore = await import('puppeteer-core');
     return puppeteerCore.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
       headless: true,
     });
   }
